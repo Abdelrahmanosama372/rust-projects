@@ -1,10 +1,13 @@
 use std::{io::{BufRead, Write}, net::{TcpListener, TcpStream}};
-
+use multithreaded_web_server::Threadpoll;
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let threadpoll = Threadpoll::new(3);
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        handle_connection(stream);
+        threadpoll.execute(|| {
+            handle_connection(stream)
+        });
     }
 }
 
@@ -15,6 +18,7 @@ fn handle_connection(mut stream: TcpStream) {
     let (filename,status) = if request_line == "GET / HTTP/1.1" {
         ("hello.html", "HTTP/1.1 200 OK")
     }else if request_line == "GET /sleep HTTP/1.1" {
+        std::thread::sleep(std::time::Duration::from_secs(10));
         ("sleep.html", "HTTP/1.1 200 OK")
     }else {
         ("404.html", "HTTP/1.1 404 NOT FOUND")
