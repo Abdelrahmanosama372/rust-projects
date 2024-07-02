@@ -3,23 +3,26 @@ use linked_list::LinkedList;
 fn main() {
    
     let mut ll = LinkedList::new();
-    ll.add(1);
-    ll.add(2);
-    ll.add(3);
-    ll.add(4);
-    ll.add(5);
-    ll.add(6);
-    ll.add(7);
-    ll.add(8);
-    ll.add(9);
-    ll.add(10);
+    ll.insert_last(1);
+    ll.insert_last(2);
+    ll.insert_last(3);
+    ll.insert_last(4);
+    ll.insert_last(5);
+    ll.insert_last(6);
+    ll.insert_last(7);
+    ll.insert_last(8);
+    ll.insert_last(9);
+    ll.insert_last(10);
     ll.print_list();
 
     ll.remove(7);
     ll.print_list();
 
-    ll.add_before(5,40);
-    ll.add_after(10, 11);
-    ll.add_after(5, 20);
+    ll.insert_before(5,40);
+    ll.insert_before(1,30);
+    ll.insert_after(10, 11);
+    ll.insert_after(40, 21);
+    ll.remove(30);
+    ll.remove(1);
     ll.print_list();
 }
