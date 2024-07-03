@@ -34,6 +34,8 @@ impl LinkedList {
             let old_next = node.borrow_mut().next.take();
             if let Some(next_node) =  old_next {
                 node.borrow_mut().next = next_node.borrow_mut().next.take();
+            }else {
+                self.tail = Some(Rc::clone(&node));
             }
         }else {
             if self.is_head(num) {
@@ -204,8 +206,9 @@ mod tests {
 
         list.remove(3);
         list.remove(1); // remove head of list
+        list.remove(5); // remove tail of list
 
-        assert_eq!(list.to_vec(),vec![2,4,5]);
+        assert_eq!(list.to_vec(),vec![2,4]);
     }
 
     #[test]
