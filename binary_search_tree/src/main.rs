@@ -17,5 +17,13 @@ fn main() {
     bst.insert(13);
 
     bst.in_order_traversal();
+    println!();
+
+    let t = bst.find_parent(3).unwrap();
+
+    if let Some(j) = t.parent {
+        println!("parent: {}, child: {}, isleft: {}",j.data ,t.node.data, t.is_left)
+    }
+   
 
 }
