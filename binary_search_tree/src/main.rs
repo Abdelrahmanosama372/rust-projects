@@ -16,14 +16,21 @@ fn main() {
     bst.insert(7);
     bst.insert(13);
 
+    bst.pre_order_traversal();
+    println!();
     bst.in_order_traversal();
     println!();
+    bst.post_order_traversal();
+    println!();
 
-    let t = bst.find_parent(3).unwrap();
+    let h = bst.find_parent(3).unwrap();
+    let node = h.node.unwrap();
+    let parent = h.parent.unwrap();
 
-    if let Some(j) = t.parent {
-        println!("parent: {}, child: {}, isleft: {}",j.data ,t.node.data, t.is_left)
-    }
-   
+    println!("child: {} parent: {} is_left: {}",node.borrow().data,parent.borrow().data,h.is_left);
 
+
+    bst.in_order_traversal();
+    println!();
+    
 }
