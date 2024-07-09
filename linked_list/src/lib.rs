@@ -8,15 +8,38 @@ struct LinkedListNode {
 pub struct LinkedList {
     head: Option<Rc<RefCell<LinkedListNode>>>,
     tail: Option<Rc<RefCell<LinkedListNode>>>,
+    length: usize,
 }
 
 impl LinkedList {
     pub fn new() -> LinkedList {
-        LinkedList {head: None, tail: None}
+        LinkedList {head: None, tail: None, length: 0}
+    }
+
+    pub fn get_length(&self) -> usize {
+        self.length
+    }
+
+    pub fn get_head_data(&self) -> Option<i32>{
+        if let Some(ref node) = self.head {
+            Some(node.borrow().data)
+        }else {
+            None 
+        }
+    }
+
+    pub fn get_tail_data(&self) -> Option<i32>{
+        if let Some(ref node) = self.tail {
+            Some(node.borrow().data)
+        }else {
+            None 
+        }
     }
 
     pub fn insert_last(&mut self, num:i32) {
         let new_node = Rc::new(RefCell::new(LinkedListNode{data: num, next: None}));
+        self.length += 1;
+
         if self.head.is_none(){
             self.head = Some(new_node.clone());
             self.tail = Some(new_node);
@@ -34,9 +57,11 @@ impl LinkedList {
             let old_next = node.borrow_mut().next.take();
             if let Some(next_node) =  old_next {
                 node.borrow_mut().next = next_node.borrow_mut().next.take();
-            }else {
-                self.tail = Some(Rc::clone(&node));
+                if self.is_tail(num) {
+                    self.tail = Some(node.clone());
+                }
             }
+            self.length -= 1;
         }else {
             if self.is_head(num) {
                 // remove the head of the linked list
@@ -44,6 +69,7 @@ impl LinkedList {
                 if let Some(node) = curr_node {
                     self.head = node.borrow_mut().next.take();
                 }
+                self.length -= 1;
             }
         }
     }
@@ -111,6 +137,7 @@ impl LinkedList {
             let old_next_node = ll_node.borrow_mut().next.take();
             let new_node = Some(Rc::new(RefCell::new(LinkedListNode {data: num, next: old_next_node})));
             ll_node.borrow_mut().next = new_node;
+            self.length += 1;
         }
     }
 
@@ -120,13 +147,16 @@ impl LinkedList {
             let old_next_node = ll_node.borrow_mut().next.take();
             let new_node = Some(Rc::new(RefCell::new(LinkedListNode {data: num, next: old_next_node})));
             ll_node.borrow_mut().next = new_node;
+            self.length += 1;
         }else {
-            if self.is_head(child_num) {
-                // add before head
-                let new_node = Some(Rc::new(RefCell::new(LinkedListNode {data: num, next: self.head.take()})));
-                self.head = new_node;
-            }
+            self.insert_head(num);
         }
+    }
+
+    pub fn insert_head(&mut self, num:i32) {
+        let new_node = Some(Rc::new(RefCell::new(LinkedListNode {data: num, next: self.head.take()})));
+        self.head = new_node;
+        self.length += 1;
     }
 
     pub fn print_list(&self) {
@@ -167,6 +197,9 @@ mod tests {
         list.insert_last(4);
         list.insert_last(5);
         assert_eq!(list.to_vec(),vec![1,2,3,4,5]);
+        assert_eq!(list.get_length(),5);
+        assert_eq!(list.get_head_data(),Some(1));
+        assert_eq!(list.get_tail_data(),Some(5));
     }
 
     #[test]
@@ -180,6 +213,9 @@ mod tests {
         list.insert_before(5,4);
         
         assert_eq!(list.to_vec(),vec![1,2,3,4,5]);
+        assert_eq!(list.get_length(),5);
+        assert_eq!(list.get_head_data(),Some(1));
+        assert_eq!(list.get_tail_data(),Some(5));
     }
 
     #[test]
@@ -193,6 +229,9 @@ mod tests {
         list.insert_after(4,5);
         
         assert_eq!(list.to_vec(),vec![1,2,3,4,5]);
+        assert_eq!(list.get_length(),5);
+        assert_eq!(list.get_head_data(),Some(1));
+        assert_eq!(list.get_tail_data(),Some(5));
     }
 
     #[test]
@@ -209,6 +248,9 @@ mod tests {
         list.remove(5); // remove tail of list
 
         assert_eq!(list.to_vec(),vec![2,4]);
+        assert_eq!(list.get_length(),2);
+        assert_eq!(list.get_head_data(),Some(2));
+        assert_eq!(list.get_tail_data(),Some(4));
     }
 
     #[test]
@@ -227,5 +269,8 @@ mod tests {
         list.insert_before(2, 1); // insert at head of list
         
         assert_eq!(list.to_vec(),vec![1,2,3,4,5]);
+        assert_eq!(list.get_length(),5);
+        assert_eq!(list.get_head_data(),Some(1));
+        assert_eq!(list.get_tail_data(),Some(5));
     }
 }
