@@ -29,7 +29,9 @@ fn main() {
 
     println!("child: {} parent: {} is_left: {}",node.borrow().data,parent.borrow().data,h.is_left);
 
-
+    bst.in_order_traversal();
+    println!();
+    bst.delete(6);
     bst.in_order_traversal();
     println!();
     
