@@ -4,9 +4,9 @@ pub mod bst;
 use bst::BST;
 
 fn main() {
-    let mut bst: BST<i32> = BST::new();
+    let mut bst: BST<i32> = BST::new(8);
    
-    bst.insert(8);
+    // bst.insert(8);
     bst.insert(3);
     bst.insert(10);
     bst.insert(1);

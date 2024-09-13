@@ -1,5 +1,5 @@
 use crate::tree_node::TreeNode;
-use std::{cell::RefCell, fmt::Display, process::Child, rc::Rc};
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 pub struct TreeNodeWithParent<T: Ord + Display> {
     pub node: Option<Rc<RefCell<TreeNode<T>>>>,
@@ -13,33 +13,33 @@ pub struct BST<T: Ord + Display + Clone> {
 
 impl<T: Ord + Display + Clone> BST<T> {
 
-    pub fn new() -> Self {
-        BST {root: None}
+    pub fn new(data: T) -> Self {
+        BST {root: Some(Rc::new(RefCell::new(TreeNode::new(data))))}
     }
 
-    pub fn insert(&mut self, data: T) {
-        let new_node = Rc::new(RefCell::new(TreeNode::new(data.clone())));
-        if self.root.is_none() {
-            self.root = Some(new_node);
-            return;
+    pub fn insert(&self, data: T) {
+        if let Some(ref root_node) = self.root {
+            self.insert_recursive(&mut *(root_node.borrow_mut()), data);
         }
-        
-        let mut curr_node = self.root.as_ref().map(|h| Rc::clone(h));
-        
-        while let Some(node_content) = curr_node {
-            if node_content.borrow().data > data {
-                if (node_content.borrow().left).is_none() {
-                    node_content.borrow_mut().left = Some(new_node);
-                    break;
-                }else {
-                    curr_node = node_content.borrow().left.as_ref().map(|h| Rc::clone(h));
-                }
+    }
+    
+
+    fn insert_recursive(&self, node: &mut TreeNode<T>, data: T)
+    {
+        if node.data > data {
+            if node.left.is_none() {
+                node.left = Some(Rc::new(RefCell::new(TreeNode::new(data))));            
             }else {
-                if node_content.borrow().right.is_none() {
-                    node_content.borrow_mut().right = Some(new_node);
-                    break;
-                }else {
-                    curr_node = node_content.borrow().right.as_ref().map(|h| Rc::clone(h));
+                if let Some(ref mut left_node) = node.left {
+                    self.insert_recursive(&mut *(left_node.borrow_mut()), data);
+                }
+            }
+        }else {
+            if node.right.is_none() {
+                node.right = Some(Rc::new(RefCell::new(TreeNode::new(data))));
+            }else {
+                if let Some(ref mut right_node) = node.right {
+                    self.insert_recursive(&mut *(right_node.borrow_mut()), data);
                 }
             }
         }
@@ -211,6 +211,5 @@ impl<T: Ord + Display + Clone> BST<T> {
             print!("{} -> ",node_content.borrow().data);
         }
     }
-
 
 }
