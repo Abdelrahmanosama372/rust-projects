@@ -1,5 +1,5 @@
 use crate::tree_node::TreeNode;
-use std::{cell::RefCell, fmt::Display, rc::Rc};
+use std::{cell::RefCell, cmp::Ordering, fmt::Display, ops::DerefMut, rc::Rc};
 
 pub struct TreeNodeWithParent<T: Ord + Display> {
     pub node: Option<Rc<RefCell<TreeNode<T>>>>,
@@ -27,20 +27,18 @@ impl<T: Ord + Display + Clone> BST<T> {
     fn insert_recursive(&self, node: &mut TreeNode<T>, data: T)
     {
         if node.data > data {
-            if node.left.is_none() {
-                node.left = Some(Rc::new(RefCell::new(TreeNode::new(data))));            
+            if let Some(ref mut left_node) = node.left
+            {
+                self.insert_recursive(left_node.borrow_mut().deref_mut(), data);
             }else {
-                if let Some(ref mut left_node) = node.left {
-                    self.insert_recursive(&mut *(left_node.borrow_mut()), data);
-                }
+                node.left = Some(Rc::new(RefCell::new(TreeNode::new(data))));
             }
         }else {
-            if node.right.is_none() {
-                node.right = Some(Rc::new(RefCell::new(TreeNode::new(data))));
+            if let Some(ref mut right_node) = node.right 
+            {
+                self.insert_recursive(right_node.borrow_mut().deref_mut(), data); 
             }else {
-                if let Some(ref mut right_node) = node.right {
-                    self.insert_recursive(&mut *(right_node.borrow_mut()), data);
-                }
+                node.right = Some(Rc::new(RefCell::new(TreeNode::new(data))));
             }
         }
     }
@@ -125,12 +123,11 @@ impl<T: Ord + Display + Clone> BST<T> {
         let mut curr_node = self.root.as_ref().map(|f| Rc::clone(f));
       
         while let Some(node_content) = curr_node {
-            if node_content.borrow().data == data {
-                return Some(Rc::clone(&node_content));
-            }else if node_content.borrow().data > data {
-                curr_node = node_content.borrow().left.as_ref().map(|h| Rc::clone(h));
-            }else {
-                curr_node = node_content.borrow().right.as_ref().map(|h| Rc::clone(h));
+            let node_data = &node_content.borrow().data;  
+            match data.cmp(node_data) {
+                Ordering::Equal => return Some(Rc::clone(&node_content)), 
+                Ordering::Less => curr_node = node_content.borrow().left.as_ref().map(|h| Rc::clone(h)),
+                Ordering::Greater => curr_node = node_content.borrow().right.as_ref().map(|h| Rc::clone(h)),         
             }
         }
         None
