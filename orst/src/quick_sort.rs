@@ -1,4 +1,3 @@
-use std::mem::swap;
 
 use super::Sorter;
 
