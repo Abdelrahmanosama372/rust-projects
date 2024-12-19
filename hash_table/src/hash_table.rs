@@ -1,19 +1,20 @@
-
-use std::{fmt::Display, ops::{Index, IndexMut}};
+use std::{
+    fmt::Display,
+    ops::{Index, IndexMut},
+};
 
 use crate::key_value_pair::KeyValuePair;
 
-pub struct HashTable <T: Clone + Ord + Display, U: Clone + Ord + Display> {
+pub struct HashTable<T: Clone + Ord + Display, U: Clone + Ord + Display> {
     data: Box<[Option<KeyValuePair<T, U>>]>,
-    capacity : usize,
-    data_count: usize
+    capacity: usize,
+    data_count: usize,
 }
 
-impl <T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
-    
+impl<T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
     pub fn new(initial_capacity: usize) -> Self {
         HashTable {
-            data: vec![None; initial_capacity].into_boxed_slice(), 
+            data: vec![None; initial_capacity].into_boxed_slice(),
             capacity: initial_capacity,
             data_count: 0,
         }
@@ -34,7 +35,7 @@ impl <T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
             hash = hash.wrapping_mul(fnv_prime);
         }
 
-        return (hash % self.capacity as u32) as usize;
+        hash as usize % self.capacity
     }
 
     fn resize_or_not(&mut self) {
@@ -42,7 +43,7 @@ impl <T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
             return;
         }
 
-        println!("i am doing resizing");
+        dbg!("i am doing resizing");
 
         let mut new_data = self.data.clone();
         self.data = vec![None; self.capacity * 2].into_boxed_slice();
@@ -50,7 +51,6 @@ impl <T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
         self.capacity *= 2;
 
         for i in 0..new_data.len() {
-
             if let Some(entry) = new_data[i].take() {
                 self.add_entry(entry.key, entry.value);
             }
@@ -61,10 +61,10 @@ impl <T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
         for i in 1..self.capacity {
             let new_hash = (hash + i) % self.capacity;
             if let Some(ref entry) = self.data[new_hash] {
-                if entry.key == *key {  
+                if entry.key == *key {
                     return Some(new_hash);
                 }
-            }else {
+            } else {
                 if set {
                     return Some(new_hash);
                 }
@@ -77,14 +77,14 @@ impl <T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
         let mut hash = self.get_hash(&key);
 
         if let Some(ref mut entry) = self.data[hash] {
-            if entry.key != key { 
+            if entry.key != key {
                 hash = self.collision_handling(&key, hash, true).unwrap(); // if collsion handling return None here then the Hash Table has an error
             }
         }
 
         if let Some(ref mut entry) = self.data[hash] {
             entry.value = _value;
-        }else {
+        } else {
             let pair = KeyValuePair::new(key, _value);
             self.data[hash] = Some(pair);
         }
@@ -97,71 +97,69 @@ impl <T: Clone + Ord + Display, U: Clone + Ord + Display> HashTable<T, U> {
         self.add_entry(key, value);
     }
 
-    pub fn get(&self, key: T) -> Option<&U>{
+    pub fn get(&self, key: T) -> Option<&U> {
         let mut hash = self.get_hash(&key);
         if let Some(ref entry) = self.data[hash] {
-            if entry.key != key {  
+            if entry.key != key {
                 hash = self.collision_handling(&key, hash, false).unwrap();
             }
         }
 
         if let Some(ref entry) = self.data[hash] {
             Some(&entry.value)
-        }else {
+        } else {
             None
         }
     }
 
-    fn get_mut(&mut self, key: T) -> Option<&mut U>{
+    fn get_mut(&mut self, key: T) -> Option<&mut U> {
         let mut hash = self.get_hash(&key);
         if let Some(ref entry) = self.data[hash] {
-            if entry.key != key {  
+            if entry.key != key {
                 hash = self.collision_handling(&key, hash, false).unwrap();
             }
         }
 
         if let Some(ref mut entry) = self.data[hash] {
             Some(&mut entry.value)
-        }else {
+        } else {
             None
         }
     }
 
-    pub fn print(&self){
-        for entry in self.data.into_iter() {
+    pub fn print(&self) {
+        for entry in self.data.iter() {
             if let Some(ref pair) = entry {
-                println!("key: {}, value: {}",pair.key,pair.value);
-            }else {
+                println!("key: {}, value: {}", pair.key, pair.value);
+            } else {
                 println!("None")
             }
         }
     }
 
     pub fn remove(&mut self, key: T) {
-
         let mut hash = self.get_hash(&key);
 
         if let Some(ref entry) = self.data[hash] {
-            if entry.key == key { 
+            if entry.key == key {
                 self.data[hash] = None;
                 return;
             }
         }
-        
+
         let hash_opt = self.collision_handling(&key, hash, false);
 
         if hash_opt.is_none() {
             return; // key is not found
-        }else {
+        } else {
             hash = hash_opt.unwrap();
         }
 
         self.data[hash] = None;
     }
-
 }
 
-impl<T: Clone + Ord + Display, U: Clone + Ord + Display>  Index<T> for HashTable<T, U>{
+impl<T: Clone + Ord + Display, U: Clone + Ord + Display> Index<T> for HashTable<T, U> {
     type Output = U;
 
     fn index(&self, index: T) -> &Self::Output {
@@ -181,7 +179,7 @@ mod tests {
 
     #[test]
     fn set_and_get_test() {
-        let mut hm: HashTable<i32,&str> = HashTable::new(6);
+        let mut hm: HashTable<i32, &str> = HashTable::new(6);
 
         hm.set(43, "hello");
         hm.set(23, "how are you");
@@ -198,12 +196,12 @@ mod tests {
 
     #[test]
     fn resize_test() {
-        let mut hm: HashTable<i32,&str> = HashTable::new(3);
+        let mut hm: HashTable<i32, &str> = HashTable::new(3);
 
         hm.set(43, "hello");
         hm.set(23, "how are you");
         hm.set(12, "i am fine");
-        
+
         assert_eq!(hm.capacity, 3);
 
         hm.set(453, "thank you");
@@ -213,14 +211,14 @@ mod tests {
 
     #[test]
     fn hash_correctness_test() {
-        let mut hm: HashTable<i32,&str> = HashTable::new(7);
+        let mut hm: HashTable<i32, &str> = HashTable::new(7);
 
         hm.set(43, "hello");
         hm.set(23, "how are you");
         hm.set(12, "i am fine");
         hm.set(453, "thank you");
         hm.set(463, "how about you");
-        
+
         // these data i get from manual hashing of the key and detection of where they must be in the hash table
         assert_eq!(hm.data[0].is_none(), true);
         assert_eq!(hm.data[1].as_ref().unwrap().value, "hello");
@@ -233,14 +231,14 @@ mod tests {
 
     #[test]
     fn remove_test() {
-        let mut hm: HashTable<i32,&str> = HashTable::new(7);
+        let mut hm: HashTable<i32, &str> = HashTable::new(7);
 
         hm.set(43, "hello");
         hm.set(23, "how are you");
         hm.set(12, "i am fine");
         hm.set(453, "thank you");
         hm.set(463, "how about you");
-        
+
         hm.remove(23);
         hm.remove(12);
         hm.remove(463);
@@ -254,3 +252,4 @@ mod tests {
         assert_eq!(hm.data[6].is_none(), true);
     }
 }
+
