@@ -77,13 +77,11 @@ impl<T: Ord + Display + Clone> BST<T> {
     }
 
     pub fn delete_node_with_one_child(&mut self, node: Rc<RefCell<TreeNode<T>>>) {
-        let child_node;
-
-        if node.borrow().left.is_some() {
-            child_node = node.borrow_mut().left.take().unwrap();
+        let child_node = if node.borrow().left.is_some() {
+            node.borrow_mut().left.take().unwrap()
         } else {
-            child_node = node.borrow_mut().right.take().unwrap();
-        }
+            node.borrow_mut().right.take().unwrap()
+        };
 
         node.borrow_mut().data = child_node.borrow_mut().data.clone();
         node.borrow_mut().left = child_node.borrow_mut().left.take();
