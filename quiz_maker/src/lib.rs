@@ -1,20 +1,17 @@
+use colored::*;
+use std::error::Error;
 use std::fs;
 use std::io;
-use std::error::Error;
-use colored::*;
-
 
 pub fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
     if args.len() < 2 {
         return Err("Error: file path is missing".into());
     }
 
-    let content = read_file(&args[1]);
-    if let Err(err) = content {
-        return Err(err);
-    }
+    let content = read_file(&args[1])?;
 
-    let lines: Vec<String> = content.unwrap().split('\n').map(String::from).collect();
+    let lines: Vec<&str> = content.split('\n').filter(|s| !s.is_empty()).collect();
+
     let mut correct_ans = 0;
     for question in lines.chunks(6) {
         display_question(question);
@@ -23,18 +20,18 @@ pub fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
         let mut usr_ans = String::new();
         io::stdin().read_line(&mut usr_ans).unwrap();
 
-        let res = check_question_answer(&usr_ans,&question[5]);
-        if res == true {
+        let res = check_question_answer(usr_ans.as_str(), question[5]);
+        if res {
             correct_ans += 1;
-            println!("{}","correct".green());
-        }else {
-            println!("{}","false".red());
+            println!("{}", "correct".green());
+        } else {
+            println!("{}", "false".red());
         }
     }
 
-    println!("{}","------------------------------");
-    println!("{} {}/{}","your score:",correct_ans,lines.len()/6);
-    println!("{}","------------------------------");
+    println!("{}", "------------------------------");
+    println!("{} {}/{}", "your score:", correct_ans, lines.len() / 6);
+    println!("{}", "------------------------------");
 
     Ok(())
 }
@@ -44,16 +41,16 @@ fn read_file(file_path: &str) -> Result<String, Box<dyn Error>> {
     Ok(content)
 }
 
-fn display_question(question: &[String]) -> () {
-    println!("{}",question[0].magenta());
+fn display_question(question: &[&str]) {
+    println!("{}", question[0].magenta());
     for str in &question[1..5] {
-        println!("{}",str.bright_cyan());
+        println!("{}", str.bright_cyan());
     }
 }
 
-fn check_question_answer(usr_ans: &String,answer: &String) -> bool {
-    if usr_ans.starts_with(answer) {
-        return true; 
+fn check_question_answer(usr_ans: &str, answer: &str) -> bool {
+    if answer.starts_with(usr_ans.trim()) {
+        return true;
     }
-    return false;
+    false
 }
